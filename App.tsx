@@ -30,6 +30,7 @@ const App: React.FC = () => {
     startTime: 0,
     endTime: 0
   });
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const workerRef = useRef<Worker | null>(null);
@@ -246,33 +247,52 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row h-screen overflow-hidden bg-slate-950 text-slate-100">
-      <Sidebar
-        settings={settings}
-        setSettings={setSettings}
-        metadata={metadata}
-        isExtracting={isExtracting}
-        onExtract={extractFrames}
-        onDownload={downloadAsZip}
-        onAbort={handleAbort}
-        canExtract={!!videoFile && !!metadata}
-        frameCount={frameCount}
-      />
+      {/* Sidebar with glass effect */}
+      <div className={`
+        fixed inset-0 z-40 lg:relative lg:inset-auto lg:block transition-transform duration-500 ease-in-out
+        ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <Sidebar
+          settings={settings}
+          setSettings={setSettings}
+          metadata={metadata}
+          isExtracting={isExtracting}
+          onExtract={() => { extractFrames(); setShowMobileSidebar(false); }}
+          onDownload={downloadAsZip}
+          onAbort={handleAbort}
+          canExtract={!!videoFile && !!metadata}
+          frameCount={frameCount}
+        />
+        {/* Mobile overlay */}
+        {showMobileSidebar && (
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm lg:hidden -z-10"
+            onClick={() => setShowMobileSidebar(false)}
+          />
+        )}
+      </div>
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
         {/* Background ambient glow */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-white/[0.02] rounded-full blur-[120px] pointer-events-none"></div>
 
-        <header className="h-24 border-b border-white/5 flex items-center justify-between px-10 shrink-0 bg-transparent backdrop-blur-md z-20">
-          <div className="flex items-center gap-5">
-            <div className="p-3 bg-white rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.15)] transform hover:rotate-6 transition-transform">
+        <header className="h-20 lg:h-24 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 shrink-0 bg-transparent backdrop-blur-md z-20">
+          <div className="flex items-center gap-4 lg:gap-5">
+            <button
+              onClick={() => setShowMobileSidebar(true)}
+              className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
+            >
+              <Settings className="w-6 h-6" />
+            </button>
+            <div className="p-2.5 lg:p-3 bg-white rounded-xl lg:rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.15)]">
               <Zap className="w-5 h-5 text-black" fill="black" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold tracking-tight text-white leading-none">
+              <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white leading-none">
                 FrameFlow
               </h1>
-              <span className="text-[10px] uppercase tracking-[0.3em] font-medium text-slate-500 mt-2">
+              <span className="hidden sm:inline text-[9px] lg:text-[10px] uppercase tracking-[0.3em] font-medium text-slate-500 mt-2">
                 Ultra-Speed Extractions
               </span>
             </div>
@@ -292,15 +312,15 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 lg:p-14 scroll-smooth custom-scrollbar z-10">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-8 lg:p-14 scroll-smooth custom-scrollbar z-10">
           {!videoFile ? (
             <div className="h-full flex items-center justify-center">
               <VideoUploader onSelect={handleVideoSelect} />
             </div>
           ) : (
-            <div className="space-y-12 max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <div className="xl:col-span-2 glass-card rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl relative group">
+            <div className="space-y-8 lg:space-y-12 max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                <div className="xl:col-span-2 glass-card rounded-[2rem] lg:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl relative group">
                   <video
                     ref={videoRef}
                     src={videoSrc}
@@ -322,7 +342,7 @@ const App: React.FC = () => {
                   )}
                 </div>
 
-                <div className="glass-card rounded-[3rem] border border-white/10 p-10 flex flex-col gap-8 shadow-xl">
+                <div className="glass-card rounded-[2rem] lg:rounded-[3rem] border border-white/10 p-6 lg:p-10 flex flex-col gap-6 lg:gap-8 shadow-xl">
                   <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-3 text-slate-400">
                     <FileVideo className="w-4 h-4" />
                     Asset Properties
@@ -370,7 +390,7 @@ const App: React.FC = () => {
                   </h2>
                 </div>
 
-                <div className="glass-card rounded-[4rem] border border-white/5 h-[450px] flex flex-col items-center justify-center text-slate-500 gap-10 bg-white/[0.01] relative overflow-hidden">
+                <div className="glass-card rounded-[2.5rem] lg:rounded-[4rem] border border-white/5 h-[350px] lg:h-[450px] flex flex-col items-center justify-center text-slate-500 gap-8 lg:gap-10 bg-white/[0.01] relative overflow-hidden">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none"></div>
 
                   <div className={`p-10 rounded-[3rem] transition-all duration-1000 ${isExtracting ? 'bg-white/5 scale-110 shadow-[0_0_100px_rgba(255,255,255,0.05)]' : 'bg-white/[0.02]'}`}>
@@ -385,7 +405,7 @@ const App: React.FC = () => {
                     )}
                   </div>
                   <div className="text-center space-y-4 px-10 relative z-10">
-                    <p className="text-3xl font-bold text-white tracking-tighter">
+                    <p className="text-xl lg:text-3xl font-bold text-white tracking-tighter">
                       {isExtracting ? 'Compiling Sequence' : frameCount > 0 ? 'Protocol Complete' : 'Engine Ready'}
                     </p>
                     <p className="text-slate-500 max-w-md mx-auto leading-relaxed font-medium text-sm tracking-wide">
