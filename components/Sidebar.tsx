@@ -11,6 +11,7 @@ interface Props {
   onExtract: () => void;
   onDownload: () => void;
   onAbort: () => void;
+  onClose?: () => void;
   canExtract: boolean;
   frameCount: number;
 }
@@ -23,18 +24,29 @@ const Sidebar: React.FC<Props> = ({
   onExtract,
   onDownload,
   onAbort,
+  onClose,
   canExtract,
   frameCount
 }) => {
   return (
-    <aside className="w-full lg:w-96 h-auto lg:h-screen glass border-r border-white/5 flex flex-col shrink-0 overflow-y-auto z-30">
-      <div className="p-10 border-b border-white/5">
-        <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3 mb-12">
-          <Sliders className="w-3.5 h-3.5" />
-          Capture Protocol
-        </h2>
+    <aside className="w-[85vw] sm:w-80 lg:w-96 h-screen glass border-r border-white/5 flex flex-col shrink-0 overflow-y-auto z-30 shadow-2xl lg:shadow-none">
+      <div className="p-8 lg:p-10 border-b border-white/5">
+        <div className="flex items-center justify-between mb-8 lg:mb-12">
+          <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
+            <Sliders className="w-3.5 h-3.5" />
+            Capture Protocol
+          </h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden p-2 -mr-2 text-slate-500 hover:text-white transition-colors"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+          )}
+        </div>
 
-        <div className="space-y-10">
+        <div className="space-y-8 lg:space-y-10">
           {/* FPS Settings */}
           <div className="space-y-5">
             <div className="flex justify-between items-end">
@@ -53,7 +65,7 @@ const Sidebar: React.FC<Props> = ({
               className="w-full h-1 bg-white/5 rounded-full appearance-none cursor-pointer accent-white"
             />
             <div className="flex justify-between text-[9px] text-slate-600 font-bold uppercase tracking-widest">
-              <span>Low Denisty</span>
+              <span>Low Density</span>
               <span>Ultra Fluid</span>
             </div>
           </div>
@@ -131,7 +143,7 @@ const Sidebar: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="mt-auto p-10 space-y-4 bg-transparent border-t border-white/5">
+      <div className="mt-auto p-8 lg:p-10 space-y-4 bg-transparent border-t border-white/5">
         {isExtracting ? (
           <button
             onClick={onAbort}
