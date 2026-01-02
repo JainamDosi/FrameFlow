@@ -1,0 +1,5 @@
+{
+  "name": "FrameFlow: Video Frame Extractor",
+  "description": "A professional-grade tool to extract sequential WebP frames from video files with customizable intervals and zip downloading.",
+  "requestFramePermissions": []
+}
