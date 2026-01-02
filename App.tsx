@@ -249,30 +249,24 @@ const App: React.FC = () => {
     <div className="flex flex-col lg:flex-row h-screen overflow-hidden bg-slate-950 text-slate-100">
       {/* Sidebar with glass effect */}
       <div className={`
-        fixed inset-0 z-50 lg:relative lg:inset-auto lg:block transition-all duration-500 ease-in-out
-        ${showMobileSidebar ? 'visible' : 'invisible lg:visible'}
+        fixed inset-0 z-40 lg:relative lg:inset-auto lg:block transition-transform duration-500 ease-in-out
+        ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className={`
-          absolute inset-y-0 left-0 transition-transform duration-500 ease-in-out
-          ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}>
-          <Sidebar
-            settings={settings}
-            setSettings={setSettings}
-            metadata={metadata}
-            isExtracting={isExtracting}
-            onExtract={() => { extractFrames(); setShowMobileSidebar(false); }}
-            onDownload={downloadAsZip}
-            onAbort={handleAbort}
-            onClose={() => setShowMobileSidebar(false)}
-            canExtract={!!videoFile && !!metadata}
-            frameCount={frameCount}
-          />
-        </div>
+        <Sidebar
+          settings={settings}
+          setSettings={setSettings}
+          metadata={metadata}
+          isExtracting={isExtracting}
+          onExtract={() => { extractFrames(); setShowMobileSidebar(false); }}
+          onDownload={downloadAsZip}
+          onAbort={handleAbort}
+          canExtract={!!videoFile && !!metadata}
+          frameCount={frameCount}
+        />
         {/* Mobile overlay */}
         {showMobileSidebar && (
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-md lg:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm lg:hidden -z-10"
             onClick={() => setShowMobileSidebar(false)}
           />
         )}
@@ -283,23 +277,22 @@ const App: React.FC = () => {
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-white/[0.02] rounded-full blur-[120px] pointer-events-none"></div>
 
-        <header className="h-16 lg:h-24 border-b border-white/5 flex items-center justify-between px-4 lg:px-10 shrink-0 bg-transparent backdrop-blur-md z-20">
-          <div className="flex items-center gap-3 lg:gap-5">
+        <header className="h-20 lg:h-24 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 shrink-0 bg-transparent backdrop-blur-md z-20">
+          <div className="flex items-center gap-4 lg:gap-5">
             <button
               onClick={() => setShowMobileSidebar(true)}
-              className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors glass rounded-xl border-white/10"
-              aria-label="Open settings"
+              className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-6 h-6" />
             </button>
-            <div className="p-2 lg:p-3 bg-white rounded-lg lg:rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.15)]">
-              <Zap className="w-4 h-4 text-black" fill="black" />
+            <div className="p-2.5 lg:p-3 bg-white rounded-xl lg:rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.15)]">
+              <Zap className="w-5 h-5 text-black" fill="black" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-lg lg:text-2xl font-bold tracking-tight text-white leading-none">
+              <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white leading-none">
                 FrameFlow
               </h1>
-              <span className="hidden sm:inline text-[8px] lg:text-[10px] uppercase tracking-[0.3em] font-medium text-slate-500 mt-1.5 lg:mt-2">
+              <span className="hidden sm:inline text-[9px] lg:text-[10px] uppercase tracking-[0.3em] font-medium text-slate-500 mt-2">
                 Ultra-Speed Extractions
               </span>
             </div>
@@ -307,27 +300,27 @@ const App: React.FC = () => {
 
           <div className="flex items-center gap-4">
             {status && (
-              <div className={`text-[10px] lg:text-xs font-semibold flex items-center gap-2 lg:gap-2.5 px-3 lg:px-5 py-1.5 lg:py-2 rounded-full glass border transition-all duration-500 ${isExtracting ? 'border-white/20 text-white' : 'border-white/10 text-slate-500'}`}>
+              <div className={`text-xs font-semibold flex items-center gap-2.5 px-5 py-2 rounded-full glass border transition-all duration-500 ${isExtracting ? 'border-white/20 text-white' : 'border-white/10 text-slate-500'}`}>
                 {isExtracting ? (
-                  <RefreshCw className="w-3 lg:w-3.5 h-3 lg:h-3.5 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <CheckCircle2 className="w-3 lg:w-3.5 h-3 lg:h-3.5 text-white/40" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-white/40" />
                 )}
-                <span className="max-w-[80px] sm:max-w-none truncate">{status}</span>
+                {status}
               </div>
             )}
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-14 scroll-smooth custom-scrollbar z-10">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-8 lg:p-14 scroll-smooth custom-scrollbar z-10">
           {!videoFile ? (
             <div className="h-full flex items-center justify-center">
               <VideoUploader onSelect={handleVideoSelect} />
             </div>
           ) : (
-            <div className="space-y-6 lg:space-y-12 max-w-7xl mx-auto">
+            <div className="space-y-8 lg:space-y-12 max-w-7xl mx-auto">
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-                <div className="xl:col-span-2 glass-card rounded-[1.5rem] lg:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl relative group">
+                <div className="xl:col-span-2 glass-card rounded-[2rem] lg:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl relative group">
                   <video
                     ref={videoRef}
                     src={videoSrc}
@@ -337,20 +330,20 @@ const App: React.FC = () => {
                     playsInline
                   />
                   {isExtracting && (
-                    <div className="absolute inset-0 bg-[#020617]/60 backdrop-blur-[6px] flex flex-col items-center justify-center pointer-events-none transition-all duration-1000 p-4">
-                      <div className="glass p-6 lg:p-10 rounded-[2rem] lg:rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center gap-4 lg:gap-6 scale-100 max-w-full">
-                        <RefreshCw className="w-8 h-8 lg:w-12 lg:h-12 text-white animate-spin opacity-80" />
+                    <div className="absolute inset-0 bg-[#020617]/60 backdrop-blur-[6px] flex flex-col items-center justify-center pointer-events-none transition-all duration-1000">
+                      <div className="glass p-10 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center gap-6 scale-100">
+                        <RefreshCw className="w-12 h-12 text-white animate-spin opacity-80" />
                         <div className="text-center">
-                          <h3 className="text-xl lg:text-2xl font-bold text-white mb-1">Processing Asset</h3>
-                          <p className="text-slate-500 text-[10px] lg:text-sm font-medium tracking-widest uppercase">{progress}% Completion</p>
+                          <h3 className="text-2xl font-bold text-white mb-1">Processing Asset</h3>
+                          <p className="text-slate-500 text-sm font-medium tracking-widest uppercase">{progress}% Completion</p>
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="glass-card rounded-[1.5rem] lg:rounded-[3rem] border border-white/10 p-6 lg:p-10 flex flex-col gap-6 lg:gap-8 shadow-xl">
-                  <h3 className="text-[10px] lg:text-sm font-bold uppercase tracking-widest flex items-center gap-3 text-slate-400">
+                <div className="glass-card rounded-[2rem] lg:rounded-[3rem] border border-white/10 p-6 lg:p-10 flex flex-col gap-6 lg:gap-8 shadow-xl">
+                  <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-3 text-slate-400">
                     <FileVideo className="w-4 h-4" />
                     Asset Properties
                   </h3>
@@ -362,7 +355,7 @@ const App: React.FC = () => {
                   </div>
 
                   {isExtracting && (
-                    <div className="mt-auto space-y-4 pt-6 lg:pt-10 border-t border-white/5">
+                    <div className="mt-auto space-y-4 pt-10 border-t border-white/5">
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-[0.2em]">
                         <span className="text-slate-600">Engine Output</span>
                         <span className="text-white">{progress}%</span>
@@ -375,7 +368,7 @@ const App: React.FC = () => {
                       </div>
                       <button
                         onClick={handleAbort}
-                        className="w-full flex items-center justify-center gap-2 py-3 lg:py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:text-white rounded-xl lg:rounded-2xl transition-all"
+                        className="w-full flex items-center justify-center gap-2 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:text-white rounded-2xl transition-all"
                       >
                         <XCircle className="w-4 h-4" />
                         Emergency Stop
@@ -385,37 +378,37 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-6 lg:space-y-8">
-                <div className="flex items-center justify-between px-2">
-                  <h2 className="text-xl lg:text-3xl font-bold flex items-center gap-3 lg:gap-4 tracking-tighter">
-                    <ImageIcon className="w-6 h-6 lg:w-8 lg:h-8 text-slate-100" />
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-bold flex items-center gap-4 tracking-tighter">
+                    <ImageIcon className="w-8 h-8 text-slate-100" />
                     Activity Monitor
-                    <div className="h-6 lg:h-8 w-px bg-white/10 mx-1 lg:mx-2"></div>
-                    <span className="text-[10px] lg:text-sm font-medium text-slate-500 uppercase tracking-widest">
+                    <div className="h-8 w-px bg-white/10 mx-2"></div>
+                    <span className="text-sm font-medium text-slate-500 uppercase tracking-widest">
                       {frameCount} Units Sync'd
                     </span>
                   </h2>
                 </div>
 
-                <div className="glass-card rounded-[2rem] lg:rounded-[4rem] border border-white/5 min-h-[300px] lg:h-[450px] flex flex-col items-center justify-center text-slate-500 p-6 lg:gap-10 bg-white/[0.01] relative overflow-hidden">
+                <div className="glass-card rounded-[2.5rem] lg:rounded-[4rem] border border-white/5 h-[350px] lg:h-[450px] flex flex-col items-center justify-center text-slate-500 gap-8 lg:gap-10 bg-white/[0.01] relative overflow-hidden">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none"></div>
 
-                  <div className={`p-6 lg:p-10 rounded-[1.5rem] lg:rounded-[3rem] transition-all duration-1000 ${isExtracting ? 'bg-white/5 scale-110 shadow-[0_0_100px_rgba(255,255,255,0.05)]' : 'bg-white/[0.02]'} mb-6 lg:mb-0`}>
+                  <div className={`p-10 rounded-[3rem] transition-all duration-1000 ${isExtracting ? 'bg-white/5 scale-110 shadow-[0_0_100px_rgba(255,255,255,0.05)]' : 'bg-white/[0.02]'}`}>
                     {isExtracting ? (
-                      <RefreshCw className="w-12 h-12 lg:w-20 lg:h-20 text-white animate-spin opacity-40" />
+                      <RefreshCw className="w-20 h-20 text-white animate-spin opacity-40" />
                     ) : frameCount > 0 ? (
-                      <div className="bg-white p-4 lg:p-6 rounded-[1.2rem] lg:rounded-[2rem] shadow-[0_0_50px_rgba(255,255,255,0.2)]">
-                        <CheckCircle2 className="w-8 h-8 lg:w-12 lg:h-12 text-black" fill="black" />
+                      <div className="bg-white p-6 rounded-[2rem] shadow-[0_0_50px_rgba(255,255,255,0.2)]">
+                        <CheckCircle2 className="w-12 h-12 text-black" fill="black" />
                       </div>
                     ) : (
-                      <Video className="w-12 h-12 lg:w-20 lg:h-20 opacity-5" />
+                      <Video className="w-20 h-20 opacity-5" />
                     )}
                   </div>
-                  <div className="text-center space-y-3 lg:space-y-4 px-4 lg:px-10 relative z-10">
-                    <p className="text-lg lg:text-3xl font-bold text-white tracking-tighter">
+                  <div className="text-center space-y-4 px-10 relative z-10">
+                    <p className="text-xl lg:text-3xl font-bold text-white tracking-tighter">
                       {isExtracting ? 'Compiling Sequence' : frameCount > 0 ? 'Protocol Complete' : 'Engine Ready'}
                     </p>
-                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed font-medium text-xs lg:text-sm tracking-wide">
+                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed font-medium text-sm tracking-wide">
                       {isExtracting
                         ? 'Hardware-accelerated processing active. All data remains encrypted and local.'
                         : frameCount > 0
@@ -426,10 +419,10 @@ const App: React.FC = () => {
                   {frameCount > 0 && !isExtracting && (
                     <button
                       onClick={downloadAsZip}
-                      className="mt-6 lg:mt-4 px-8 lg:px-12 py-4 lg:py-5 bg-white text-black font-bold text-sm lg:text-base rounded-[1.5rem] lg:rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0.4)] flex items-center gap-3 lg:gap-4 relative z-10"
+                      className="mt-4 px-12 py-5 bg-white text-black font-bold rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-[0_30px_60px_-15px_rgba(255,255,255,0.4)] flex items-center gap-4 relative z-10"
                     >
-                      <Download className="w-5 h-5 lg:w-6 lg:h-6" />
-                      Download Manifest ({frameCount})
+                      <Download className="w-6 h-6" />
+                      Download Manifest ({frameCount} Units)
                     </button>
                   )}
                 </div>
@@ -445,9 +438,9 @@ const App: React.FC = () => {
 };
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between items-center py-3 lg:py-4 border-b border-white/5 last:border-0 group">
-    <span className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest transition-colors group-hover:text-slate-400">{label}</span>
-    <span className="text-white text-xs lg:text-sm font-semibold truncate max-w-[140px] sm:max-w-[200px] lg:max-w-none ml-4" title={value}>{value}</span>
+  <div className="flex justify-between items-center py-4 border-b border-white/5 last:border-0 group">
+    <span className="text-slate-500 text-xs font-bold uppercase tracking-widest transition-colors group-hover:text-slate-400">{label}</span>
+    <span className="text-white text-sm font-semibold truncate max-w-[180px]" title={value}>{value}</span>
   </div>
 );
 
