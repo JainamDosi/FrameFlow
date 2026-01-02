@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
     "jszip": "3.10.1",
     "lucide-react": "0.460.0",
     "mp4box": "^2.3.0",

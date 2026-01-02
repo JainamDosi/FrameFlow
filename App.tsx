@@ -54,45 +54,47 @@ const App: React.FC = () => {
 
     let frameBuffer: ExtractedFrame[] = [];
     let lastUpdateTime = 0;
-    let totalProcessed = 0;
 
     workerRef.current.onmessage = (e) => {
       const data = e.data;
       if (data.type === 'frame-processed') {
-        const frame: ExtractedFrame = {
+        frameBuffer.push({
           id: data.id,
           blob: data.blob,
           url: data.url,
           timestamp: data.timestamp
-        };
-
-        frameBuffer.push(frame);
-        totalProcessed++;
+        });
 
         const now = Date.now();
-        // Dynamic batching for better UX:
-        // 1. First frame is shown immediately
-        // 2. Next 10 frames shown as they come
-        // 3. Then batch every 100ms or 20 frames
+        // Dynamic batching for perfect sync:
+        // - First 10 frames are shown instantly
+        // - Thereafter batch every 150ms or 30 frames
         const shouldUpdate =
-          totalProcessed === 1 ||
-          (totalProcessed < 10 && frameBuffer.length >= 1) ||
-          (now - lastUpdateTime > 100) ||
-          (frameBuffer.length >= 20);
+          (frameBuffer.length === 1 && extractedFrames.length < 10) ||
+          (now - lastUpdateTime > 150) ||
+          (frameBuffer.length >= 30);
 
         if (shouldUpdate) {
           const chunk = [...frameBuffer];
-          setExtractedFrames(prev => [...prev, ...chunk]);
+          setExtractedFrames(prev => {
+            const next = [...prev, ...chunk];
+            if (isExtracting) {
+              setStatus(`Encoding Sequence: ${next.length} frames ready`);
+            }
+            return next;
+          });
           frameBuffer = [];
           lastUpdateTime = now;
-          setStatus(`Processing: ${totalProcessed} frames encoded...`);
         }
       } else if (data.type === 'flush') {
-        if (frameBuffer.length > 0) {
-          const chunk = [...frameBuffer];
-          setExtractedFrames(prev => [...prev, ...chunk]);
+        // Worker signals that all processing is done
+        setExtractedFrames(prev => {
+          const next = [...prev, ...frameBuffer];
           frameBuffer = [];
-        }
+          setStatus(`Extraction complete. ${next.length} frames ready for download.`);
+          setIsExtracting(false);
+          return next;
+        });
       } else if (data.type === 'zip-ready') {
         const link = document.createElement("a");
         link.href = URL.createObjectURL(data.blob);
@@ -106,6 +108,7 @@ const App: React.FC = () => {
         setStatus(data.message);
       } else if (data.type === 'zip-progress') {
         setProgress(Math.round(data.progress));
+        setStatus(`Generating ZIP: ${Math.round(data.progress)}%`);
       }
     };
 
@@ -240,8 +243,9 @@ const App: React.FC = () => {
 
     if (!abortRef.current) {
       workerRef.current.postMessage({ type: 'flush-request' });
-      setStatus('Extraction complete. Ready for download.');
-      setIsExtracting(false);
+      // We don't set setIsExtracting(false) here. 
+      // We wait for the 'flush' message from the worker to confirm everything is encoded.
+      setStatus('Finishing encoding sequence...');
     }
   };
 
