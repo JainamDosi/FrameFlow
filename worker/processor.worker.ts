@@ -24,41 +24,45 @@ type WorkerRequest = ProcessRequest | ZipRequest | ClearRequest | FlushRequest;
 let zip = new JSZip();
 let framesFolder = zip.folder("extracted_frames");
 
+// Reuse canvas and context to avoid memory thrashing
+let offscreenCanvas: OffscreenCanvas | null = null;
+let offscreenCtx: OffscreenCanvasRenderingContext2D | null = null;
+
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
     const data = e.data;
 
     if (data.type === 'process-frame') {
         const { id, bitmap, quality, format, timestamp } = data;
 
-        // Create offscreen canvas
-        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-        const ctx = canvas.getContext('2d');
+        // Initialize or resize canvas if needed
+        if (!offscreenCanvas || offscreenCanvas.width !== bitmap.width || offscreenCanvas.height !== bitmap.height) {
+            offscreenCanvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+            offscreenCtx = offscreenCanvas.getContext('2d', { alpha: false });
+        }
 
-        if (!ctx) {
+        if (!offscreenCtx) {
             self.postMessage({ type: 'error', message: 'Failed to get canvas context' });
             return;
         }
 
-        ctx.drawImage(bitmap, 0, 0);
-        bitmap.close(); // Free memory immediately
+        offscreenCtx.drawImage(bitmap, 0, 0);
+        bitmap.close(); // Crucial: release GPU memory immediately
 
-        const blob = await canvas.convertToBlob({
+        const blob = await offscreenCanvas.convertToBlob({
             type: `image/${format}`,
             quality
         });
 
-        // Add to zip immediately to avoid keeping blobs in main memory if possible
+        // Add to zip immediately
         const frameFilename = `frame_${String(id).padStart(4, '0')}.${format}`;
         framesFolder?.file(frameFilename, blob);
 
-        // Send back the blob URL for preview
         const url = URL.createObjectURL(blob);
         self.postMessage({
             type: 'frame-processed',
             id,
             url,
-            timestamp,
-            blob // Optional: we might not need to send the blob back if ZIP is handled here
+            timestamp
         });
     }
 

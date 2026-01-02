@@ -54,6 +54,7 @@ const App: React.FC = () => {
 
     let frameBuffer: ExtractedFrame[] = [];
     let lastUpdateTime = 0;
+    let totalProcessed = 0;
 
     workerRef.current.onmessage = (e) => {
       const data = e.data;
@@ -66,14 +67,25 @@ const App: React.FC = () => {
         };
 
         frameBuffer.push(frame);
+        totalProcessed++;
 
-        // Update UI at most every 200ms or when buffer is large
         const now = Date.now();
-        if (now - lastUpdateTime > 200 || frameBuffer.length >= 50) {
+        // Dynamic batching for better UX:
+        // 1. First frame is shown immediately
+        // 2. Next 10 frames shown as they come
+        // 3. Then batch every 100ms or 20 frames
+        const shouldUpdate =
+          totalProcessed === 1 ||
+          (totalProcessed < 10 && frameBuffer.length >= 1) ||
+          (now - lastUpdateTime > 100) ||
+          (frameBuffer.length >= 20);
+
+        if (shouldUpdate) {
           const chunk = [...frameBuffer];
           setExtractedFrames(prev => [...prev, ...chunk]);
           frameBuffer = [];
           lastUpdateTime = now;
+          setStatus(`Processing: ${totalProcessed} frames encoded...`);
         }
       } else if (data.type === 'flush') {
         if (frameBuffer.length > 0) {
@@ -169,6 +181,8 @@ const App: React.FC = () => {
       framesToExtract.push(settings.endTime);
     }
 
+    let lastProgressUpdate = 0;
+
     for (let i = 0; i < framesToExtract.length; i++) {
       if (abortRef.current) {
         setStatus('Extraction stopped');
@@ -209,12 +223,17 @@ const App: React.FC = () => {
         console.error('Frame extraction failed at', time, err);
       }
 
-      const p = Math.round(((i + 1) / framesToExtract.length) * 100);
-      setProgress(p);
-      setStatus(`Processing: ${i + 1} / ${framesToExtract.length}`);
+      const now = Date.now();
+      // Throttle progress updates to 100ms
+      if (now - lastProgressUpdate > 100 || i === framesToExtract.length - 1) {
+        const p = Math.round(((i + 1) / framesToExtract.length) * 100);
+        setProgress(p);
+        setStatus(`Processing: ${i + 1} / ${framesToExtract.length}`);
+        lastProgressUpdate = now;
+      }
 
-      // Yield to main thread to keep UI responsive
-      if (i % 5 === 0) {
+      // Small pause every 10 frames to keep the event loop healthy
+      if (i % 10 === 0) {
         await new Promise(r => setTimeout(r, 0));
       }
     }
