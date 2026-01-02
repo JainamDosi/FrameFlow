@@ -13,14 +13,13 @@ import {
 } from 'lucide-react';
 import { ExtractionSettings, ExtractedFrame, VideoMetadata } from './types';
 import VideoUploader from './components/VideoUploader';
-import FrameGrid from './components/FrameGrid';
 import Sidebar from './components/Sidebar';
 
 const App: React.FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoSrc, setVideoSrc] = useState<string>('');
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
-  const [extractedFrames, setExtractedFrames] = useState<ExtractedFrame[]>([]);
+  const [frameCount, setFrameCount] = useState<number>(0);
   const [isExtracting, setIsExtracting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<string>('');
@@ -37,12 +36,7 @@ const App: React.FC = () => {
   const abortRef = useRef(false);
   // Clean up Object URLs to prevent memory leaks
   const clearFrames = useCallback(() => {
-    setExtractedFrames(prev => {
-      prev.forEach(frame => {
-        if (frame.url) URL.revokeObjectURL(frame.url);
-      });
-      return [];
-    });
+    setFrameCount(0);
   }, []);
 
   useEffect(() => {
@@ -58,28 +52,15 @@ const App: React.FC = () => {
     workerRef.current.onmessage = (e) => {
       const data = e.data;
       if (data.type === 'frame-processed') {
-        frameBuffer.push({
-          id: data.id,
-          blob: data.blob,
-          url: data.url,
-          timestamp: data.timestamp
-        });
-
         const now = Date.now();
-        // Dynamic batching for perfect sync:
-        // - First 10 frames are shown instantly
-        // - Thereafter batch every 150ms or 30 frames
-        const shouldUpdate =
-          (frameBuffer.length === 1 && extractedFrames.length < 10) ||
-          (now - lastUpdateTime > 150) ||
-          (frameBuffer.length >= 30);
+        frameBuffer.push({} as any); // Buffer used for batching updates
 
-        if (shouldUpdate) {
-          const chunk = [...frameBuffer];
-          setExtractedFrames(prev => {
-            const next = [...prev, ...chunk];
+        if (now - lastUpdateTime > 150 || frameBuffer.length >= 30) {
+          const countToadd = frameBuffer.length;
+          setFrameCount(prev => {
+            const next = prev + countToadd;
             if (isExtracting) {
-              setStatus(`Encoding Sequence: ${next.length} frames ready`);
+              setStatus(`Disk Sync: ${next} frames saved`);
             }
             return next;
           });
@@ -87,11 +68,10 @@ const App: React.FC = () => {
           lastUpdateTime = now;
         }
       } else if (data.type === 'flush') {
-        // Worker signals that all processing is done
-        setExtractedFrames(prev => {
-          const next = [...prev, ...frameBuffer];
+        setFrameCount(prev => {
+          const next = prev + frameBuffer.length;
           frameBuffer = [];
-          setStatus(`Extraction complete. ${next.length} frames ready for download.`);
+          setStatus(`Extraction complete. ${next} frames ready for download.`);
           setIsExtracting(false);
           return next;
         });
@@ -255,7 +235,7 @@ const App: React.FC = () => {
   };
 
   const downloadAsZip = async () => {
-    if (extractedFrames.length === 0 || !workerRef.current) return;
+    if (frameCount === 0 || !workerRef.current) return;
     setIsExtracting(true); // Show progress bar for ZIP generation
     workerRef.current.postMessage({
       type: 'generate-zip',
@@ -275,7 +255,7 @@ const App: React.FC = () => {
         onDownload={downloadAsZip}
         onAbort={handleAbort}
         canExtract={!!videoFile && !!metadata}
-        frameCount={extractedFrames.length}
+        frameCount={frameCount}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -371,23 +351,45 @@ const App: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <h2 className="text-2xl font-bold flex items-center gap-2">
                     <ImageIcon className="w-6 h-6 text-indigo-400" />
-                    Sequence Preview
+                    Extraction Status
                     <span className="ml-2 px-3 py-1 text-xs bg-slate-800 text-slate-400 rounded-full border border-slate-700">
-                      {extractedFrames.length} Frames
+                      {frameCount} Frames Total
                     </span>
                   </h2>
                 </div>
 
-                {extractedFrames.length > 0 ? (
-                  <FrameGrid frames={extractedFrames} format={settings.format} />
-                ) : (
-                  <div className="border-2 border-dashed border-slate-800 rounded-3xl h-64 flex flex-col items-center justify-center text-slate-500 gap-4 bg-slate-900/30">
-                    <div className="p-4 bg-slate-800/50 rounded-2xl">
-                      <ImageIcon className="w-10 h-10 opacity-30" />
-                    </div>
-                    <p className="font-medium text-slate-400">Run extraction to see frames here</p>
+                <div className="border-2 border-dashed border-slate-800 rounded-3xl h-96 flex flex-col items-center justify-center text-slate-500 gap-6 bg-slate-900/30">
+                  <div className={`p-6 rounded-2xl transition-all duration-500 ${isExtracting ? 'bg-indigo-500/10 animate-pulse' : 'bg-slate-800/50'}`}>
+                    {isExtracting ? (
+                      <RefreshCw className="w-16 h-16 text-indigo-500 animate-spin" />
+                    ) : frameCount > 0 ? (
+                      <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+                    ) : (
+                      <Video className="w-16 h-16 opacity-30" />
+                    )}
                   </div>
-                )}
+                  <div className="text-center space-y-2">
+                    <p className="text-xl font-bold text-slate-200">
+                      {isExtracting ? 'Warp Speed Extraction' : frameCount > 0 ? 'Batch Processed Successfully' : 'Engine Idle'}
+                    </p>
+                    <p className="text-slate-400 max-w-sm">
+                      {isExtracting
+                        ? 'Your frames are being captured and encoded in the background using hardware acceleration.'
+                        : frameCount > 0
+                          ? `All ${frameCount} frames are ready. You can now download the complete sequence as a high-quality ZIP archive.`
+                          : 'Configure your extraction settings in the sidebar and click Start Extraction to begin.'}
+                    </p>
+                  </div>
+                  {frameCount > 0 && !isExtracting && (
+                    <button
+                      onClick={downloadAsZip}
+                      className="mt-4 px-8 py-3 bg-white text-slate-950 font-bold rounded-xl hover:scale-105 transition-all shadow-xl flex items-center gap-2"
+                    >
+                      <Download className="w-5 h-5" />
+                      Download Final Sequence ({frameCount})
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
