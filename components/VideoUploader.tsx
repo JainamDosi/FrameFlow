@@ -22,13 +22,13 @@ const VideoUploader: React.FC<Props> = ({ onSelect }) => {
   };
 
   return (
-    <div 
+    <div
       className={`
-        w-full max-w-xl p-12 rounded-3xl border-2 border-dashed transition-all duration-300
-        flex flex-col items-center justify-center text-center cursor-pointer
-        ${isDragging 
-          ? 'border-indigo-500 bg-indigo-500/10 scale-105' 
-          : 'border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900'}
+        w-full max-w-xl p-16 rounded-[4rem] border-2 border-dashed transition-all duration-700
+        flex flex-col items-center justify-center text-center cursor-pointer glass-card
+        ${isDragging
+          ? 'border-white bg-white/10 scale-105'
+          : 'border-white/10 bg-white/[0.01] hover:border-white/30 hover:bg-white/[0.03]'}
       `}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
@@ -39,26 +39,26 @@ const VideoUploader: React.FC<Props> = ({ onSelect }) => {
       }}
       onClick={() => inputRef.current?.click()}
     >
-      <input 
-        type="file" 
-        ref={inputRef} 
-        className="hidden" 
+      <input
+        type="file"
+        ref={inputRef}
+        className="hidden"
         accept="video/*"
         onChange={(e) => handleFile(e.target.files)}
       />
-      
-      <div className="w-20 h-20 bg-indigo-600/20 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-        <Upload className="w-10 h-10 text-indigo-500" />
+
+      <div className="w-24 h-24 bg-white/[0.03] rounded-[2rem] flex items-center justify-center mb-10 border border-white/10 shadow-inner group">
+        <Upload className="w-10 h-10 text-white opacity-40 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <h2 className="text-2xl font-bold text-white mb-2">Drop your video here</h2>
-      <p className="text-slate-400 max-w-xs mb-8">
-        MP4, WebM, or MOV files are supported.
+      <h2 className="text-3xl font-bold text-white mb-3 tracking-tighter">Initialize Protocol</h2>
+      <p className="text-slate-500 max-w-xs mb-10 text-sm font-medium leading-relaxed">
+        Drop high-fidelity video assets here to begin the sequence extraction process.
       </p>
 
-      <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-indigo-900/20 flex items-center gap-2">
+      <button className="px-10 py-4 bg-white hover:scale-105 text-black font-bold rounded-2xl transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] flex items-center gap-3">
         <Video className="w-5 h-5" />
-        Choose Video
+        Choose Source Asset
       </button>
     </div>
   );

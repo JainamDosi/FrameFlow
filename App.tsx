@@ -258,24 +258,33 @@ const App: React.FC = () => {
         frameCount={frameCount}
       />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 shrink-0 bg-slate-900/50 backdrop-blur-md z-10">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-lg shadow-lg shadow-indigo-500/20">
-              <Zap className="w-5 h-5 text-white" />
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Background ambient glow */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-white/[0.02] rounded-full blur-[120px] pointer-events-none"></div>
+
+        <header className="h-24 border-b border-white/5 flex items-center justify-between px-10 shrink-0 bg-transparent backdrop-blur-md z-20">
+          <div className="flex items-center gap-5">
+            <div className="p-3 bg-white rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.15)] transform hover:rotate-6 transition-transform">
+              <Zap className="w-5 h-5 text-black" fill="black" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              FrameFlow
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold tracking-tight text-white leading-none">
+                FrameFlow
+              </h1>
+              <span className="text-[10px] uppercase tracking-[0.3em] font-medium text-slate-500 mt-2">
+                Ultra-Speed Extractions
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
             {status && (
-              <div className={`text-sm font-medium flex items-center gap-2 px-3 py-1 rounded-full border ${isExtracting ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300' : 'border-slate-800 bg-slate-800/50 text-slate-400'}`}>
+              <div className={`text-xs font-semibold flex items-center gap-2.5 px-5 py-2 rounded-full glass border transition-all duration-500 ${isExtracting ? 'border-white/20 text-white' : 'border-white/10 text-slate-500'}`}>
                 {isExtracting ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-white/40" />
                 )}
                 {status}
               </div>
@@ -283,110 +292,117 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 scroll-smooth custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-8 lg:p-14 scroll-smooth custom-scrollbar z-10">
           {!videoFile ? (
             <div className="h-full flex items-center justify-center">
               <VideoUploader onSelect={handleVideoSelect} />
             </div>
           ) : (
-            <div className="space-y-8 max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl group relative">
+            <div className="space-y-12 max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <div className="xl:col-span-2 glass-card rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl relative group">
                   <video
                     ref={videoRef}
                     src={videoSrc}
-                    className="w-full aspect-video bg-black"
+                    className="w-full aspect-video bg-black/40"
                     controls
                     muted
                     playsInline
                   />
                   {isExtracting && (
-                    <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px] flex flex-col items-center justify-center pointer-events-none">
-                      <div className="bg-slate-900/90 p-6 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4">
-                        <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
-                        <span className="text-lg font-bold">Extracting Sequence</span>
-                        <span className="text-slate-400 text-sm font-mono">{progress}% Complete</span>
+                    <div className="absolute inset-0 bg-[#020617]/60 backdrop-blur-[6px] flex flex-col items-center justify-center pointer-events-none transition-all duration-1000">
+                      <div className="glass p-10 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center gap-6 scale-100">
+                        <RefreshCw className="w-12 h-12 text-white animate-spin opacity-80" />
+                        <div className="text-center">
+                          <h3 className="text-2xl font-bold text-white mb-1">Processing Asset</h3>
+                          <p className="text-slate-500 text-sm font-medium tracking-widest uppercase">{progress}% Completion</p>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col gap-6 shadow-xl">
-                  <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-200">
-                    <FileVideo className="w-5 h-5 text-indigo-400" />
-                    Video Info
+                <div className="glass-card rounded-[3rem] border border-white/10 p-10 flex flex-col gap-8 shadow-xl">
+                  <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-3 text-slate-400">
+                    <FileVideo className="w-4 h-4" />
+                    Asset Properties
                   </h3>
-                  <div className="space-y-1">
-                    <InfoRow label="Filename" value={metadata?.name || 'Loading...'} />
-                    <InfoRow label="Resolution" value={metadata ? `${metadata.width} x ${metadata.height}` : '...'} />
-                    <InfoRow label="Duration" value={metadata ? `${metadata.duration.toFixed(2)}s` : '...'} />
-                    <InfoRow label="File Size" value={metadata ? `${(metadata.size / (1024 * 1024)).toFixed(2)} MB` : '...'} />
+                  <div className="space-y-0 text-slate-300">
+                    <InfoRow label="Identifier" value={metadata?.name || '---'} />
+                    <InfoRow label="Resolution" value={metadata ? `${metadata.width} x ${metadata.height}` : '---'} />
+                    <InfoRow label="Temporal" value={metadata ? `${metadata.duration.toFixed(2)}s` : '---'} />
+                    <InfoRow label="Compression" value={metadata ? `${(metadata.size / (1024 * 1024)).toFixed(2)} MB` : '---'} />
                   </div>
 
                   {isExtracting && (
-                    <div className="mt-auto space-y-3 pt-6 border-t border-slate-800">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">Total Progress</span>
-                        <span className="text-indigo-400 font-bold">{progress}%</span>
+                    <div className="mt-auto space-y-4 pt-10 border-t border-white/5">
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-[0.2em]">
+                        <span className="text-slate-600">Engine Output</span>
+                        <span className="text-white">{progress}%</span>
                       </div>
-                      <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                      <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
                         <div
-                          className="bg-indigo-600 h-full transition-all duration-300 shadow-[0_0_15px_rgba(79,70,229,0.6)]"
+                          className="bg-white h-full transition-all duration-700 ease-out"
                           style={{ width: `${progress}%` }}
                         ></div>
                       </div>
                       <button
                         onClick={handleAbort}
-                        className="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-rose-400 border border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 rounded-lg transition-colors"
+                        className="w-full flex items-center justify-center gap-2 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:text-white rounded-2xl transition-all"
                       >
                         <XCircle className="w-4 h-4" />
-                        Cancel Extraction
+                        Emergency Stop
                       </button>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold flex items-center gap-2">
-                    <ImageIcon className="w-6 h-6 text-indigo-400" />
-                    Extraction Status
-                    <span className="ml-2 px-3 py-1 text-xs bg-slate-800 text-slate-400 rounded-full border border-slate-700">
-                      {frameCount} Frames Total
+                  <h2 className="text-3xl font-bold flex items-center gap-4 tracking-tighter">
+                    <ImageIcon className="w-8 h-8 text-slate-100" />
+                    Activity Monitor
+                    <div className="h-8 w-px bg-white/10 mx-2"></div>
+                    <span className="text-sm font-medium text-slate-500 uppercase tracking-widest">
+                      {frameCount} Units Sync'd
                     </span>
                   </h2>
                 </div>
 
-                <div className="border-2 border-dashed border-slate-800 rounded-3xl h-96 flex flex-col items-center justify-center text-slate-500 gap-6 bg-slate-900/30">
-                  <div className={`p-6 rounded-2xl transition-all duration-500 ${isExtracting ? 'bg-indigo-500/10 animate-pulse' : 'bg-slate-800/50'}`}>
+                <div className="glass-card rounded-[4rem] border border-white/5 h-[450px] flex flex-col items-center justify-center text-slate-500 gap-10 bg-white/[0.01] relative overflow-hidden">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none"></div>
+
+                  <div className={`p-10 rounded-[3rem] transition-all duration-1000 ${isExtracting ? 'bg-white/5 scale-110 shadow-[0_0_100px_rgba(255,255,255,0.05)]' : 'bg-white/[0.02]'}`}>
                     {isExtracting ? (
-                      <RefreshCw className="w-16 h-16 text-indigo-500 animate-spin" />
+                      <RefreshCw className="w-20 h-20 text-white animate-spin opacity-40" />
                     ) : frameCount > 0 ? (
-                      <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+                      <div className="bg-white p-6 rounded-[2rem] shadow-[0_0_50px_rgba(255,255,255,0.2)]">
+                        <CheckCircle2 className="w-12 h-12 text-black" fill="black" />
+                      </div>
                     ) : (
-                      <Video className="w-16 h-16 opacity-30" />
+                      <Video className="w-20 h-20 opacity-5" />
                     )}
                   </div>
-                  <div className="text-center space-y-2">
-                    <p className="text-xl font-bold text-slate-200">
-                      {isExtracting ? 'Warp Speed Extraction' : frameCount > 0 ? 'Batch Processed Successfully' : 'Engine Idle'}
+                  <div className="text-center space-y-4 px-10 relative z-10">
+                    <p className="text-3xl font-bold text-white tracking-tighter">
+                      {isExtracting ? 'Compiling Sequence' : frameCount > 0 ? 'Protocol Complete' : 'Engine Ready'}
                     </p>
-                    <p className="text-slate-400 max-w-sm">
+                    <p className="text-slate-500 max-w-md mx-auto leading-relaxed font-medium text-sm tracking-wide">
                       {isExtracting
-                        ? 'Your frames are being captured and encoded in the background using hardware acceleration.'
+                        ? 'Hardware-accelerated processing active. All data remains encrypted and local.'
                         : frameCount > 0
-                          ? `All ${frameCount} frames are ready. You can now download the complete sequence as a high-quality ZIP archive.`
-                          : 'Configure your extraction settings in the sidebar and click Start Extraction to begin.'}
+                          ? `The extraction of ${frameCount} high-fidelity frames is ready. Save the sequence manifest below.`
+                          : 'Configure specific temporal ranges and capture frequency to initiate frame sequence protocol.'}
                     </p>
                   </div>
                   {frameCount > 0 && !isExtracting && (
                     <button
                       onClick={downloadAsZip}
-                      className="mt-4 px-8 py-3 bg-white text-slate-950 font-bold rounded-xl hover:scale-105 transition-all shadow-xl flex items-center gap-2"
+                      className="mt-4 px-12 py-5 bg-white text-black font-bold rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-[0_30px_60px_-15px_rgba(255,255,255,0.4)] flex items-center gap-4 relative z-10"
                     >
-                      <Download className="w-5 h-5" />
-                      Download Final Sequence ({frameCount})
+                      <Download className="w-6 h-6" />
+                      Download Manifest ({frameCount} Units)
                     </button>
                   )}
                 </div>
@@ -402,9 +418,9 @@ const App: React.FC = () => {
 };
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between items-center py-2.5 border-b border-slate-800/50 last:border-0">
-    <span className="text-slate-500 text-sm font-medium">{label}</span>
-    <span className="text-slate-300 text-sm font-semibold truncate max-w-[180px]" title={value}>{value}</span>
+  <div className="flex justify-between items-center py-4 border-b border-white/5 last:border-0 group">
+    <span className="text-slate-500 text-xs font-bold uppercase tracking-widest transition-colors group-hover:text-slate-400">{label}</span>
+    <span className="text-white text-sm font-semibold truncate max-w-[180px]" title={value}>{value}</span>
   </div>
 );
 
